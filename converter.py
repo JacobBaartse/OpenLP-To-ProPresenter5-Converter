@@ -117,17 +117,17 @@ def Verbose_names(key):
 
 def AntiUnicode(text):
 
-    def escape_u(t):
-        """ turns a '\u####' type hexadecimal unicode escape char into
-            it's RTF '\uxxxx' decimal.
-            For use in a re.sub function as the callback. """
-        return r'\u' + unicode(int(t.group()[2:], 16)) + ' '
+    def rtf_encode_char(unichar):
+        code = ord(unichar)
+        if code < 128:
+            return str(unichar)
+        return '\\u' + str(code if code <= 32767 else code-65536) + '?'
 
-    return re.sub(__re_uni_x,   escape_u,
-               re.sub(__re_uni_u, escape_u,
-                   text.encode('unicode-escape')))\
+    def rtf_encode(unistr):
+        return ''.join(rtf_encode_char(c) for c in unistr)\
            .replace(r'\n','\\\n')
 
+    return rtf_encode(text)
 
 def MakeRTFBlob(text):
     return b64encode(
